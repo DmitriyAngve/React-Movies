@@ -1,5 +1,3 @@
-import PropTypes from "prop-types";
-
 function MovieCard({ movie }) {
   function onFavoriteClick() {}
 
@@ -20,11 +18,5 @@ function MovieCard({ movie }) {
     </div>
   );
 }
-
-MovieCard.propsType = {
-  movie: PropTypes.shape({
-    release_date: PropTypes.shape.isRequired,
-  }).isRequired,
-};
 
 export default MovieCard;
