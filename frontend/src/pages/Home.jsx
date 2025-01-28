@@ -1,13 +1,11 @@
 import MovieCard from "../components/MovieCard";
 import { useState, useEffect } from "react";
-
 import { searchMovies, getPopularMovies } from "../services/api";
-
 import "../css/Home.css";
 
 function Home() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [movies, setMovies] = useState([]);
+  const [movies, setMovies] = useState([]); // Инициализируем пустым массивом
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -15,9 +13,14 @@ function Home() {
     const loadPopularMovies = async () => {
       try {
         const popularMovies = await getPopularMovies();
-        setMovies(popularMovies);
+        // Проверяем, что popularMovies существует и является массивом
+        if (Array.isArray(popularMovies)) {
+          setMovies(popularMovies);
+        } else {
+          setError("Invalid data format received from API");
+        }
       } catch (err) {
-        console.log(err);
+        console.error(err);
         setError("Failed to load movies...");
       } finally {
         setLoading(false);
@@ -26,10 +29,27 @@ function Home() {
     loadPopularMovies();
   }, []);
 
-  const handleSearch = (e) => {
+  const handleSearch = async (e) => {
     e.preventDefault();
-    alert(searchQuery);
-    setSearchQuery("11");
+    if (!searchQuery.trim()) return;
+    if (loading) return;
+
+    setLoading(true);
+    try {
+      const searchResults = await searchMovies(searchQuery);
+      // Проверяем, что searchResults существует и является массивом
+      if (Array.isArray(searchResults)) {
+        setMovies(searchResults);
+        setError(null);
+      } else {
+        setError("Invalid data format received from API");
+      }
+    } catch (err) {
+      console.error(err);
+      setError("Failed to search movies...");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -53,12 +73,9 @@ function Home() {
         <div className="loading">Loading...</div>
       ) : (
         <div className="movies-grid">
-          {movies.map(
-            (movie) =>
-              movie.title.toLowerCase().startsWith(searchQuery) && (
-                <MovieCard movie={movie} key={movie.id} />
-              )
-          )}
+          {movies.map((movie) => (
+            <MovieCard movie={movie} key={movie.id} />
+          ))}
         </div>
       )}
     </div>
